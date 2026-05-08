@@ -1,0 +1,225 @@
+===========================
+= pwa/package.json
+===========================
+{
+  "name": "tg-roof-takeoff-pro",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^5.0.0"
+  }
+}
+
+===========================
+= pwa/vite.config.js
+===========================
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  build: { outDir: 'dist' }
+});
+
+===========================
+= pwa/index.html
+===========================
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>TG Roof Takeoff Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="manifest" href="/manifest.json" />
+  </head>
+  <body style="margin:0;background:#0d0d0d;color:#e6e6e6;">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+===========================
+= pwa/manifest.json
+===========================
+{
+  "name": "TG Roof Takeoff Pro",
+  "short_name": "TakeoffPro",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": []
+}
+
+===========================
+= pwa/service-worker.js
+===========================
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", () => clients.claim());
+
+===========================
+= pwa/src/main.jsx
+===========================
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App";
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+===========================
+= pwa/src/App.jsx
+===========================
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./screens/Home";
+import Upload from "./screens/Upload";
+import Scale from "./screens/Scale";
+import Trace from "./screens/Trace";
+import Estimate from "./screens/Estimate";
+import ProjectList from "./screens/ProjectList";
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/upload" element={<Upload />} />
+        <Route path="/scale" element={<Scale />} />
+        <Route path="/trace" element={<Trace />} />
+        <Route path="/estimate" element={<Estimate />} />
+        <Route path="/projects" element={<ProjectList />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+===========================
+= pwa/src/screens/Home.jsx
+===========================
+export default function Home() {
+  return (
+    <div style={{ padding: 20 }}>
+      <h1>TG Roof Takeoff Pro</h1>
+      <p>Start a new takeoff or open an existing project.</p>
+    </div>
+  );
+}
+
+===========================
+= pwa/src/screens/Upload.jsx
+===========================
+export default function Upload() {
+  return (
+    <div style={{ padding: 20 }}>
+      <h2>Upload Roof Image</h2>
+      <input type="file" accept="image/*" />
+    </div>
+  );
+}
+
+===========================
+= pwa/src/screens/Scale.jsx
+===========================
+export default function Scale() {
+  return (
+    <div style={{ padding: 20 }}>
+      <h2>Set Scale</h2>
+      <p>Tap two points to define measurement.</p>
+    </div>
+  );
+}
+
+===========================
+= pwa/src/screens/Trace.jsx
+===========================
+export default function Trace() {
+  return (
+    <div style={{ padding: 20 }}>
+      <h2>Trace Roof Sections</h2>
+      <p>Draw polygons to outline roof areas.</p>
+    </div>
+  );
+}
+
+===========================
+= pwa/src/screens/Estimate.jsx
+===========================
+export default function Estimate() {
+  return (
+    <div style={{ padding: 20 }}>
+      <h2>Estimate</h2>
+      <p>Calculate squares and pitch-adjusted area.</p>
+    </div>
+  );
+}
+
+===========================
+= pwa/src/screens/ProjectList.jsx
+===========================
+export default function ProjectList() {
+  return (
+    <div style={{ padding: 20 }}>
+      <h2>Projects</h2>
+      <p>Your saved takeoffs will appear here.</p>
+    </div>
+  );
+}
+
+===========================
+= pwa/src/components/Canvas.jsx
+===========================
+export default function Canvas() {
+  return <div style={{ height: 400, background: "#222" }}>Canvas</div>;
+}
+
+===========================
+= pwa/src/components/PolygonTool.jsx
+===========================
+export default function PolygonTool() {
+  return <div>Polygon Tool</div>;
+}
+
+===========================
+= pwa/src/components/Toolbar.jsx
+===========================
+export default function Toolbar() {
+  return <div>Toolbar</div>;
+}
+
+===========================
+= pwa/src/components/DarkHeader.jsx
+===========================
+export default function DarkHeader({ title }) {
+  return (
+    <div style={{ padding: 10, background: "#111", color: "#fff" }}>
+      <h2>{title}</h2>
+    </div>
+  );
+}
+
+===========================
+= pwa/src/services/measurement.js
+===========================
+export function measureDistance(p1, p2) {
+  const dx = p1.x - p2.x;
+  const dy = p1.y - p2.y;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+===========================
+= pwa/src/services/pitchDetection.js
+===========================
+export function calculatePitchMultiplier(pitch) {
+  return Math.sqrt(1 + (pitch / 12) ** 2);
+}
