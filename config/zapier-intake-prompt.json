@@ -1,0 +1,51 @@
+{
+  "ai_action_config": {
+    "prompt_name": "AI Receptionist – Extract Project Info",
+    "version": "1.0",
+    "used_after": "Dialogflow or Google Voice transcription",
+    "integration": "Zapier AI Action"
+  },
+  "prompt": "You are TG Contracting's intake assistant. Extract the following fields from the call transcript and return ONLY clean JSON with no extra text.\n\nRequired fields:\n- name\n- phone\n- email (if mentioned)\n- address\n- city\n- project_type (roofing, deck, landscaping, other)\n- project_details\n- urgency (low, medium, high)\n- timeline_requested\n- budget (if mentioned)\n- referral_source\n- notes\n\nIf a field is missing, return an empty string.\n\nOutput JSON exactly like this:",
+  "output_schema": {
+    "name": "",
+    "phone": "",
+    "email": "",
+    "address": "",
+    "city": "",
+    "state": "",
+    "zip": "",
+    "project_type": "",
+    "project_details": "",
+    "urgency": "",
+    "timeline_requested": "",
+    "budget": "",
+    "referral_source": "",
+    "notes": "",
+    "capture_timestamp": "",
+    "source": "ai_receptionist"
+  },
+  "field_guidelines": {
+    "name": "Full name of the caller",
+    "phone": "10-digit phone number (format: 555-123-4567)",
+    "email": "Valid email address if mentioned",
+    "address": "Full street address",
+    "city": "City name",
+    "state": "2-letter state code",
+    "zip": "5-digit zip code",
+    "project_type": "One of: roofing, deck, landscaping, other",
+    "project_details": "Detailed description of work needed",
+    "urgency": "One of: low, medium, high (based on language like ASAP, emergency, soon, flexible)",
+    "timeline_requested": "When they want work done (e.g., 'next week', '2 weeks', 'ASAP')",
+    "budget": "Dollar amount if mentioned (format: 5000 or range: 5000-10000)",
+    "referral_source": "How they found us (Google, Yelp, referral, website, etc.)",
+    "notes": "Any additional context or special instructions"
+  },
+  "zapier_setup": {
+    "step_1": "Trigger: Webhook (receive Dialogflow payload)",
+    "step_2": "Action: Zapier AI with this prompt",
+    "step_3": "Action: Formatter (ensure phone format, uppercase cities)",
+    "step_4": "Action: Send to webhook endpoint",
+    "webhook_url": "https://YOUR_DOMAIN/api/zapier/intake",
+    "auth_header": "Authorization: Bearer YOUR_ZAPIER_TOKEN"
+  }
+}
