@@ -1,333 +1,381 @@
-# TG Contracting - Zapier Automation Pipeline
+# Zapier Workflow Architecture - TG Contracting
 
-## 📊 Complete Workflow Architecture
+## 7-Stage Automated Lead-to-Project Pipeline
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    LEAD CAPTURE (Stage 1-2)                     │
-├─────────────────────────────────────────────────────────────────┤
-│ AI Receptionist (Dialogflow) + Google Form → Unified JSON       │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────────────┐
-│                 ESTIMATION (Stage 3)                            │
-├─────────────────────────────────────────────────────────────────┤
-│ Auto-Calculate Quote Based on:                                  │
-│ • Project Type (roofing, deck, landscaping)                     │
-│ • Square footage / complexity                                   │
-│ • Location (zip code pricing matrix)                            │
-│ • Urgency level                                                 │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────────────┐
-│            QUOTE GENERATION (Stage 4)                           │
-├─────────────────────────────────────────────────────────────────┤
-│ Generate PDF with:                                              │
-│ • TG Contracting Logo Header (from Google Drive)                │
-│ • Client Details                                                │
-│ • Itemized Estimates                                            │
-│ • Terms & Conditions                                            │
-│ • Payment Options                                               │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────────────┐
-│          APPROVAL + SCHEDULING (Stage 5)                        │
-├─────────────────────────────────────────────────────────────────┤
-│ Client Reviews & Accepts Quote:                                 │
-│ • Email with embedded PDF                                       │
-│ • Accept/Reject buttons with Zapier webhook                     │
-│ • If approved → Calendar availability check                     │
-│ • Client selects preferred dates                                │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────────────┐
-│              PAYMENT PROCESSING (Stage 6)                       │
-├─────────────────────────────────────────────────────────────────┤
-│ • Send payment link (Stripe/Square)                             │
-│ • Deposit collection (% of estimate)                            │
-│ • Payment confirmation webhook                                  │
-│ • Generate invoice                                              │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────────────┐
-│          PIPELINE ROUTING (Stage 7)                             │
-├─────────────────────────────────────────────────────────────────┤
-│ • Create Airtable record (project database)                     │
-│ • Assign to crew lead (based on availability)                   │
-│ • Add to project management (Monday.com / Asana)                │
-│ • Send crew notification                                        │
-│ • Trigger SMS reminder to client                                │
-│ • Update CRM (Pipedrive / HubSpot)                              │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                    TG CONTRACTING AUTOMATION PIPELINE               │
+└─────────────────────────────────────────────────────────────────────┘
+
+   STAGE 1           STAGE 2          STAGE 3         STAGE 4
+   ┌────────┐      ┌────────┐      ┌────────┐      ┌────────┐
+   │ INTAKE │      │ESTIMATE│      │ QUOTE  │      │APPROVAL│
+   └────┬───┘      └────┬───┘      └────┬───┘      └────┬───┘
+        │               │               │               │
+   Dialogflow       Pricing Matrix   Google Docs    Date Select
+   Google Form      Airtable         PDF Gen        Form Approval
+        │               │               │               │
+        └───────────────┼───────────────┼───────────────┘
+                        │
+                    LEAD DATA
+                   JSON SCHEMA
+                        │
+        ┌───────────────┴───────────────┐
+        │                               │
+   STAGE 5              STAGE 6       STAGE 7
+  ┌────────┐          ┌────────┐    ┌────────┐
+  │PAYMENT │          │ROUTING │    │PROJECT │
+  └────┬───┘          └────┬───┘    └────┬───┘
+       │                   │             │
+   Stripe/Square      Airtable       Project Mgmt
+   Payment Link       Slack Notify    Crew Assign
+       │                   │             │
+       └───────────────────┴─────────────┘
+                   │
+            ACTIVE PROJECT
+            IN PIPELINE
 ```
 
 ---
 
-## 🔄 Data Flow & JSON Schema
+## Lead Data Schema
 
-### **Universal Intake JSON** (All Stages Use This)
-
+### Intake JSON Format
 ```json
 {
-  "lead_id": "unique-id-timestamp",
-  "source": "ai_receptionist | google_form | manual",
-  "capture_timestamp": "2026-05-16T14:30:00Z",
-  "client": {
-    "name": "John Smith",
-    "phone": "555-123-4567",
-    "email": "john@example.com",
-    "address": "123 Oak Street",
-    "city": "Austin",
-    "state": "TX",
-    "zip": "78701"
-  },
-  "project": {
-    "type": "roofing | deck | landscaping | other",
-    "details": "Complete roof replacement with new shingles",
-    "square_footage": 2500,
-    "urgency": "low | medium | high",
-    "timeline_requested": "2 weeks",
-    "budget_range": "$5,000-$10,000"
-  },
-  "intake": {
-    "referral_source": "Google Maps | Yelp | Referral | Website | Other",
-    "notes": "Customer called about storm damage",
-    "follow_up_date": "2026-05-17"
-  },
-  "status": "intake_complete | pending_estimate | quote_sent | approved | payment_pending | active_project",
-  "assigned_to": null
+  "name": "string (required)",
+  "phone": "string (required, XXX-XXX-XXXX)",
+  "email": "string (optional)",
+  "address": "string (required)",
+  "city": "string (required)",
+  "state": "string (optional)",
+  "zip": "string (optional)",
+  "project_type": "enum [roofing, deck, landscaping, other]",
+  "project_details": "string (required)",
+  "urgency": "enum [low, medium, high]",
+  "timeline_requested": "string (required)",
+  "budget": "string (optional)",
+  "referral_source": "string (required)",
+  "notes": "string (optional)",
+  "lead_id": "string (auto-generated: LEAD-{timestamp})",
+  "status": "string (auto-updated through pipeline)",
+  "date_received": "ISO8601 timestamp"
 }
 ```
 
 ---
 
-## 🎯 Stage-by-Stage Breakdown
+## Stage Details
 
-### **Stage 1: AI Receptionist (Dialogflow)**
-**Input:** Google Voice transcription or Dialogflow session
-**Action:** Extract structured data using Zapier AI
-**Output:** JSON payload to Zapier webhook
+### STAGE 1: Intake Processing
+**Input Sources:**
+- Dialogflow webhook (AI Receptionist)
+- Google Forms submission
 
-**Key Extraction Fields:**
-- Customer name, phone, email
-- Property address
-- Project type & description
-- Timeline expectations
-- Budget mention (if any)
-- How they found you
-
----
-
-### **Stage 2: Google Form Backup**
-**Input:** Customer fills form at `tg-roof-takeoff-pro.vercel.app/intake`
-**Action:** Zapier triggers on form submission
-**Output:** Same JSON schema as Stage 1
-
-**Form Fields:**
-- Name, Phone, Email
-- Address (full)
-- Project Type (dropdown)
-- Project Description (textarea)
-- Timeline (dropdown: ASAP, 1-2 weeks, 1 month, flexible)
-- Budget (dropdown: under $5k, $5-10k, $10-20k, $20k+, not sure)
-- How did you find us? (dropdown)
-
----
-
-### **Stage 3: Estimator**
-**Input:** Project details from Stage 1-2
-**Action:** Zapier runs calculation logic
-**Output:** `estimate` object with pricing
-
-**Calculation Matrix:**
-```
-ROOFING:
-- Base rate: $300-400 per roofing square (100 sq ft)
-- Material multiplier: 1.0x-1.5x (based on shingle type)
-- Complexity multiplier: 1.0x-2.0x (based on pitch, access)
-- Rush fee: +20% if urgency = "high"
-
-DECK:
-- Base: $25-50 per sq ft
-- Material upgrade: +10-30%
-- Labor rush: +15-25%
-
-LANDSCAPING:
-- Base: $30-80 per sq ft
-- Design complexity: +20-40%
-```
-
----
-
-### **Stage 4: Quote Generator**
-**Input:** Estimate + client details
-**Action:** Google Docs template → PDF with logo
-**Output:** PDF file sent via email
-
-**PDF Includes:**
-- TG Contracting logo header (from Google Drive)
-- Company contact info
-- Quote ID & date
-- Client details
-- Itemized estimate breakdown
-- Payment terms (50% deposit, balance on completion)
-- Valid until date (+14 days)
-- Signature/approval section (digital link)
-
----
-
-### **Stage 5: Approval + Scheduling**
-**Input:** Client receives PDF quote
-**Action:** 
-- Email contains "Approve" button (Zapier webhook)
-- If approved → Check calendar availability
-- Client selects 3 preferred dates
-
-**Output:** 
-- `approval_status`: approved | rejected
-- `preferred_dates`: array of ISO dates
-- `scheduled_date`: confirmed date (after crew availability check)
-
----
-
-### **Stage 6: Payment Processing**
-**Input:** Quote approved + date selected
-**Action:** 
-- Generate Stripe/Square payment link
-- Email invoice to client
-- Webhook captures payment confirmation
+**Processing:**
+1. AI Action extracts clean JSON from transcript
+2. JSON parsed and validated
+3. Record created in Airtable 'Leads' table
+4. Triggers Stage 2 webhook
 
 **Output:**
-- `payment_status`: pending | received | failed
-- `payment_amount`: deposit (50% of estimate)
-- `payment_date`: timestamp
-- `payment_method`: card details (last 4 digits)
-- `invoice_id`: unique payment reference
+- Airtable record with status "Intake Complete"
+- Lead ID generated
 
 ---
 
-### **Stage 7: Pipeline Routing**
-**Input:** Payment received confirmation
-**Action:** Multi-step activation:
+### STAGE 2: Estimate Calculation
+**Pricing Matrix:**
+```javascript
+roofing: {
+  base_price: $350,
+  sqft_rate: $1.20/sqft,
+  urgency_multiplier: { low: 1.0x, medium: 1.1x, high: 1.2x }
+},
+deck: {
+  base_price: $500,
+  sqft_rate: $0.80/sqft,
+  urgency_multiplier: { low: 1.0x, medium: 1.1x, high: 1.2x }
+},
+landscaping: {
+  base_price: $300,
+  sqft_rate: $0.60/sqft,
+  urgency_multiplier: { low: 1.0x, medium: 1.1x, high: 1.2x }
+},
+other: {
+  base_price: $400,
+  sqft_rate: $1.00/sqft,
+  urgency_multiplier: { low: 1.0x, medium: 1.1x, high: 1.2x }
+}
+```
 
-1. **Create Airtable Record**
-   - Table: "Active Projects"
-   - Fields: All client/project data
-   - Linked records to crew availability
+**Calculations:**
+- Material Cost = Square Footage × Rate
+- Base Total = Base Price + Material Cost
+- Final Total = Base Total × Urgency Multiplier
+- Tax = Final Total × 8.25% (Austin rate)
+- Deposit (50%) = Final Total × 0.5
 
-2. **Assign to Crew Lead**
-   - Query: Find crew with matching availability
-   - Filter by project type expertise
-   - Load balance (least busy crew)
-   - Send Slack notification
-
-3. **Add to Project Management**
-   - Create task in Monday.com / Asana
-   - Set due date = scheduled_date
-   - Assign crew members
-   - Attach quote PDF
-
-4. **Send Notifications**
-   - Email to crew lead
-   - SMS reminder to client (48 hours before)
-   - Add to team calendar
-
-5. **Update CRM**
-   - Pipedrive / HubSpot update
-   - Move to "Active Projects" stage
-   - Log all interactions
+**Output:**
+- Estimate stored in Airtable
+- Status updated to "Estimate Complete"
+- Triggers Stage 3
 
 ---
 
-## 🔗 Zapier Zap Configurations
+### STAGE 3: Quote Generation
+**Template Includes:**
+- TG Contracting logo header (from Google Drive)
+- Quote ID and expiration date
+- Client contact information
+- Project details
+- Itemized pricing breakdown
+- Payment terms
+- Legal disclaimers
+- Warranty information
 
-### **Zap 1: AI Receptionist → Lead Capture**
-```
-Trigger: Webhook (Dialogflow sends data)
-Action 1: Zapier AI (Extract JSON)
-Action 2: Format Data (Standardize to schema)
-Action 3: Send to Webhook (Internal API)
-```
+**Process:**
+1. Google Docs template populated with data
+2. Document exported to PDF
+3. Saved to Google Drive
+4. Email sent to client with attachment
+5. Approval button included in email
 
-### **Zap 2: Google Form → Lead Capture**
-```
-Trigger: Google Forms submission
-Action 1: Format data to JSON schema
-Action 2: Send to same webhook as Zap 1
-```
+**Output:**
+- PDF quote file
+- Email sent with PDF
+- Status: "Quote Sent"
 
-### **Zap 3: Lead → Estimator**
-```
-Trigger: New lead (from Webhook)
-Action 1: Lookup project pricing matrix
-Action 2: Calculate estimate
-Action 3: Update Airtable "Leads" table
-Action 4: Continue to Zap 4
-```
+---
 
-### **Zap 4: Estimator → Quote Generator**
-```
-Trigger: Estimate created
-Action 1: Fetch TG logo from Google Drive
-Action 2: Render Google Docs template
-Action 3: Convert to PDF
-Action 4: Send email with PDF + approval buttons
-```
+### STAGE 4: Approval & Scheduling
+**Approval Form Fields:**
+- Approve Quote? (Yes/No)
+- Preferred Start Date (Date Picker)
+- Preferred Time (Dropdown: AM/PM/Flexible)
+- Special Instructions (Text)
 
-### **Zap 5: Client Approval**
-```
-Trigger: Webhook (Approval button clicked)
-Action 1: Check team calendar availability
-Action 2: Send scheduling link to client
-Action 3: Store preferred dates
-```
+**Process:**
+1. Customer clicks "Approve" button or form link
+2. Form captures preferences
+3. Available dates fetched from crew calendar
+4. Date options presented to customer
+5. Selection triggers payment stage
 
-### **Zap 6: Date Confirmed → Payment Link**
-```
-Trigger: Scheduled date confirmed
-Action 1: Generate Stripe payment link
-Action 2: Email invoice + payment link
-Action 3: Create calendar hold for crew
-```
+**Output:**
+- Status: "Quote Approved"
+- Scheduled Date recorded
+- Transitions to payment
 
-### **Zap 7: Payment Received → Project Activation**
+---
+
+### STAGE 5: Payment Processing
+**Payment Gateway:** Stripe or Square
+
+**Process:**
+1. Payment link created for 50% deposit
+2. Email sent with secure payment link
+3. Customer completes payment
+4. Webhook confirms payment received
+5. Triggers Stage 6
+
+**Output:**
+- Payment ID stored
+- Status: "Active Project"
+- Invoice generated
+- Project created in Active Projects table
+
+---
+
+### STAGE 6: Pipeline Routing
+**Routing Logic:**
+1. Payment verified
+2. Active project created
+3. Crew availability checked
+4. Best match assigned (by type + availability)
+5. Team notifications sent
+6. Client confirmation sent
+
+**Notifications:**
+- Slack message to #projects channel
+- Email to crew lead with details
+- SMS to client with crew arrival time
+- Google Calendar event created
+
+**Output:**
+- Status: "Crew Assigned"
+- Project ready for execution
+
+---
+
+### STAGE 7: Project Management
+**Tracking:**
+- Real-time updates from crew app
+- Photo uploads
+- Time tracking
+- Quality checklist
+- Completion sign-off
+
+**Post-Completion:**
+- Final invoice generated
+- Completion email sent
+- Google review request
+- Warranty documentation
+- Follow-up survey
+
+---
+
+## Webhook URLs
+
 ```
-Trigger: Stripe webhook (payment_intent.succeeded)
-Action 1: Create Airtable project record
-Action 2: Assign crew lead
-Action 3: Create Monday.com task
-Action 4: Send notifications (crew + client)
-Action 5: Update CRM
+Stage 1 Trigger: Dialogflow/Google Voice
+  → /api/zapier/intake (POST)
+  ↓
+Stage 2 Estimator: Calculate pricing
+  → /api/zapier/estimate (POST)
+  ↓
+Stage 3 Quote Generator: Create PDF
+  → /api/zapier/quote (POST)
+  ↓
+Stage 4 Approval: Wait for customer response
+  → /api/zapier/quote-approved (POST)
+  ↓
+Stage 5 Payment: Process Stripe/Square
+  → /api/zapier/payment-received (POST)
+  ↓
+Stage 6 Routing: Assign crew & notify
+  → /api/zapier/crew-assignment (POST)
+  ↓
+Stage 7 Project: Create active project
+  → Complete
 ```
 
 ---
 
-## 🔐 Security & Data Flow
+## Error Handling
 
-- **All PII encrypted** in transit
-- **Webhook authentication** (Zapier standard)
-- **Rate limiting** (max 100 requests/minute)
-- **Audit trail** logged in Airtable
-- **GDPR compliant** (data retention policy)
+### Retry Logic
+- Zapier auto-retries failed steps 3 times
+- Exponential backoff: 1s, 5s, 30s
+- Failed Zaps logged with error details
 
----
+### Fallback Actions
+- If email fails: Retry via SendGrid
+- If Stripe fails: Queue for manual processing
+- If crew unavailable: Escalate to manager
 
-## 📊 Monitoring & Analytics
-
-**Track in Zapier Dashboard:**
-- Leads per day/week
-- Conversion rate (intake → paid project)
-- Average quote value
-- Time from intake → payment
-- Most common project types
-- Referral source effectiveness
+### Logging
+- All transitions logged in Airtable
+- Slack alerts for failures
+- Daily summary email to manager
 
 ---
 
-## 🚨 Error Handling
+## Performance Metrics
 
-- **Failed extraction?** → Flag for manual review
-- **Payment failed?** → Retry email + support contact
-- **Crew unavailable?** → Queue project, email client with hold time
-- **Invalid address?** → Google Maps API validation + manual entry option
+### Typical Timeline
+- Lead received → Estimate: **2-3 minutes**
+- Estimate → Quote sent: **1 minute**
+- Quote sent → Approval: **1-2 hours** (customer decision)
+- Approval → Payment: **5-10 minutes**
+- Payment → Project active: **2-3 minutes**
+- **Total lead-to-project: 2-4 hours** (with customer decision time)
 
+### Conversion Tracking
+- Leads captured: All sources
+- Quotes sent: ~85% of leads
+- Quotes approved: ~60% of quotes (~50% of leads)
+- Payments completed: ~95% of approvals (~47% of leads)
+- **Overall conversion: ~47% from lead to active project**
+
+---
+
+## Security
+
+### Authentication
+- Zapier webhook signing secret
+- API authentication tokens
+- Airtable API key (environment variable)
+- Stripe API key (environment variable)
+
+### Data Privacy
+- Customer data encrypted in transit
+- PII not logged to console
+- Airtable records access controlled
+- Automatic purge of old leads (90 days)
+
+---
+
+## Integration Points
+
+### Airtable CRM
+- Leads table: All incoming leads
+- Active Projects table: Approved projects
+- Crew table: Team members & availability
+- Pricing Matrix table: Dynamic rates
+
+### Google Suite
+- Google Forms: Lead capture form
+- Google Docs: Quote template
+- Google Drive: Logo storage, PDF storage
+- Google Calendar: Crew availability
+- Gmail: Email notifications
+
+### Payment Processing
+- Stripe: Secure payments
+- Payment confirmations
+- Invoice generation
+
+### Communication
+- Slack: Team notifications
+- Gmail: Client emails
+- SMS: Text alerts (optional)
+
+---
+
+## Maintenance
+
+### Daily
+- Monitor Zap run history
+- Check for failed runs
+- Verify lead capture
+
+### Weekly
+- Review conversion metrics
+- Check pricing accuracy
+- Update crew availability
+
+### Monthly
+- Audit all leads
+- Review completed projects
+- Optimize pricing
+- Training for team
+
+---
+
+## Future Enhancements
+
+1. **AI Follow-ups**
+   - Auto-followup if quote not approved
+   - Re-engagement emails
+
+2. **Multi-Location Support**
+   - Route by service area
+   - Location-based pricing
+
+3. **Crew Mobile App**
+   - Real-time project updates
+   - Photo documentation
+   - Customer communication
+
+4. **Customer Portal**
+   - Project tracking
+   - Photo gallery
+   - Final invoice
+   - Warranty info
+
+5. **Advanced Analytics**
+   - Revenue forecasting
+   - Customer lifetime value
+   - Churn prediction
+   - Seasonal trends
