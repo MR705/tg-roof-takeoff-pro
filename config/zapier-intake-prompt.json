@@ -1,0 +1,124 @@
+{
+  "prompt_name": "AI Receptionist - Extract Project Info",
+  "version": "1.0",
+  "description": "Extracts lead information from call transcripts via Dialogflow",
+  "fields": [
+    {
+      "field": "name",
+      "type": "string",
+      "required": true,
+      "description": "Client full name",
+      "example": "John Smith"
+    },
+    {
+      "field": "phone",
+      "type": "string",
+      "required": true,
+      "description": "Phone number in format (XXX) XXX-XXXX",
+      "example": "(512) 555-1234"
+    },
+    {
+      "field": "email",
+      "type": "string",
+      "required": false,
+      "description": "Email address",
+      "example": "john@email.com"
+    },
+    {
+      "field": "address",
+      "type": "string",
+      "required": true,
+      "description": "Street address",
+      "example": "123 Main St"
+    },
+    {
+      "field": "city",
+      "type": "string",
+      "required": true,
+      "description": "City name",
+      "example": "Austin"
+    },
+    {
+      "field": "state",
+      "type": "string",
+      "required": true,
+      "description": "State code",
+      "example": "TX"
+    },
+    {
+      "field": "zip",
+      "type": "string",
+      "required": true,
+      "description": "Zip code",
+      "example": "78701"
+    },
+    {
+      "field": "project_type",
+      "type": "enum",
+      "required": true,
+      "description": "Type of project",
+      "values": ["roofing", "deck", "landscaping", "other"],
+      "example": "roofing"
+    },
+    {
+      "field": "project_details",
+      "type": "string",
+      "required": true,
+      "description": "Detailed description of project scope",
+      "example": "Need roof replacement on 2-story home, shingles damaged"
+    },
+    {
+      "field": "urgency",
+      "type": "enum",
+      "required": true,
+      "description": "How urgent the project is",
+      "values": ["low", "medium", "high"],
+      "example": "high"
+    },
+    {
+      "field": "timeline_requested",
+      "type": "string",
+      "required": true,
+      "description": "When client wants project completed",
+      "example": "Within 2 weeks"
+    },
+    {
+      "field": "budget",
+      "type": "string",
+      "required": false,
+      "description": "Budget mentioned by client",
+      "example": "$5000-$8000"
+    },
+    {
+      "field": "referral_source",
+      "type": "string",
+      "required": true,
+      "description": "How they found you (Google, Yelp, referral, etc)",
+      "example": "Google Search"
+    },
+    {
+      "field": "notes",
+      "type": "string",
+      "required": false,
+      "description": "Any additional notes from conversation",
+      "example": "Customer wants crew between 9am-5pm on weekdays only"
+    }
+  ],
+  "output_format": "JSON",
+  "example_output": {
+    "name": "John Smith",
+    "phone": "(512) 555-1234",
+    "email": "john@email.com",
+    "address": "123 Main St",
+    "city": "Austin",
+    "state": "TX",
+    "zip": "78701",
+    "project_type": "roofing",
+    "project_details": "Need roof replacement on 2-story home, shingles damaged from storm",
+    "urgency": "high",
+    "timeline_requested": "Within 2 weeks",
+    "budget": "$5000-$8000",
+    "referral_source": "Google Search",
+    "notes": "Customer wants crew between 9am-5pm on weekdays only"
+  }
+}
