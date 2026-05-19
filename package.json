@@ -1,0 +1,18 @@
+{
+  "name": "tg-roof-takeoff-pro",
+  "version": "1.0.0",
+  "description": "TG Roof Takeoff Pro - PWA Application",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "start": "webpack serve"
+  },
+  "keywords": ["pwa", "roof", "takeoff"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "webpack": "^5.0.0",
+    "webpack-cli": "^5.0.0",
+    "webpack-dev-server": "^4.0.0"
+  }
+}
