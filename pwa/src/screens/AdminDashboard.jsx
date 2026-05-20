@@ -204,7 +204,7 @@ export default function AdminDashboard() {
               key={quote.id}
               style={{
                 background: "#111",
-                border: `2px solid ${getStatusColor(quote.status)}",
+                border: `2px solid ${getStatusColor(quote.status)}`,
                 borderRadius: "8px",
                 marginBottom: "12px",
                 overflow: "hidden",
