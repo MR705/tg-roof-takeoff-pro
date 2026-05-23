@@ -1,0 +1,23 @@
+git add index.html quote.html
+git commit -m "Integrate master intake form pipeline into main CTA nodes"
+git push origin main
+Hi [col C — Client Name],
+
+Thank you for considering TG Contracting for your project.
+
+Please find your project estimate below:
+
+Project: [col E — Project Address]
+Adjusted Total: [col K — Adjusted Total]
+Deposit Required: [col L — Deposit Due]
+Quote Valid Until: [col G — Valid Until]
+
+To accept this quote, simply reply to this email or call us directly.
+
+Payment Terms: 50% deposit / 40% progress / 10% completion
+Warranty: 2-year workmanship warranty
+Insurance: WSIB covered · $5M commercial liability
+
+Thank you,
+TG Contracting
+info@tgcontracting.ca | tgcontracting705.ca

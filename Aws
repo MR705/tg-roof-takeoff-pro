@@ -1,3 +1,0 @@
-git add index.html quote.html
-git commit -m "Integrate master intake form pipeline into main CTA nodes"
-git push origin main
